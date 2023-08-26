@@ -8,7 +8,7 @@ use tokio::{
 };
 use tokio_stream::StreamExt;
 
-fn setup(paths: &[&str]) -> Inotify {
+fn setup_watchers(paths: &[&str]) -> Inotify {
     let inotify = Inotify::init().expect("Error initialising inotify");
     for path in paths {
         inotify
@@ -77,7 +77,7 @@ struct Args {
 async fn main() {
     let args = Args::parse();
 
-    let inotify = setup(&["/dev/video0"]);
+    let inotify = setup_watchers(&["/dev/video0"]);
     let buffer = [0; 1024];
     let stream = inotify
         .into_event_stream(buffer)
