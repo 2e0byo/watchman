@@ -8,12 +8,12 @@ use tokio::{
 };
 use tokio_stream::StreamExt;
 
-fn setup_watchers(paths: &[&str]) -> Inotify {
+fn setup_watchers(paths: Vec<String>) -> Inotify {
     let inotify = Inotify::init().expect("Error initialising inotify");
     for path in paths {
         inotify
             .watches()
-            .add(path, WatchMask::OPEN | WatchMask::CLOSE)
+            .add(path.clone(), WatchMask::OPEN | WatchMask::CLOSE)
             .expect(&format!("Failed to add watch for {}", path));
     }
     inotify
@@ -57,12 +57,15 @@ async fn update(mut rx: Receiver<bool>, cmd: String, on: String, off: String) {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about=None)]
 struct Args {
+    /// Command to call; will receive state as first arg.
+    cmd: String,
+
+    /// Files to watch
+    paths: Vec<String>,
+
     /// Filter delay in ms.
     #[arg(short, long, default_value_t = 500)]
     delay: u64,
-
-    /// Command to call; will receive state as first arg.
-    cmd: String,
 
     /// String to pass when resource in use.
     #[arg(long, default_value = "on")]
@@ -77,7 +80,7 @@ struct Args {
 async fn main() {
     let args = Args::parse();
 
-    let inotify = setup_watchers(&["/dev/video0"]);
+    let inotify = setup_watchers(args.paths);
     let buffer = [0; 1024];
     let stream = inotify
         .into_event_stream(buffer)
