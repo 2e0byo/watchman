@@ -3,6 +3,9 @@ name = "watchman"
 version = "0.1.0"
 edition = "2021"
 authors = ["John Morris"]
+description = "A debounced inotify file watcher, mostly for webcams"
+license = "GPL"
+repository = "https://github.com/2e0byo/watchman"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
