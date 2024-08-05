@@ -14,7 +14,7 @@ fn setup_watchers(paths: Vec<String>) -> Inotify {
         inotify
             .watches()
             .add(path.clone(), WatchMask::OPEN | WatchMask::CLOSE)
-            .expect(&format!("Failed to add watch for {}", path));
+            .unwrap_or_else(|_| panic!("Failed to add watch for {}", path));
     }
     inotify
 }
@@ -85,10 +85,7 @@ async fn main() {
     let stream = inotify
         .into_event_stream(buffer)
         .expect("Failed to start stream.")
-        .filter(|msg| match msg {
-            Ok(_) => true,
-            _ => false,
-        })
+        .filter(|msg| msg.is_ok())
         .map(|msg| match msg.unwrap().mask {
             EventMask::OPEN => true,
             EventMask::CLOSE_NOWRITE | EventMask::CLOSE_WRITE => false,
