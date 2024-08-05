@@ -42,9 +42,6 @@ async fn filter(count: u8, delay_ms: u64, tx: Sender<u8>) {
 
 async fn update(mut rx: Receiver<u8>, cmd: String, on: String, off: String) {
     let mut current_state = State::NotInUse;
-    let cmd = cmd.clone();
-    let on = on.clone();
-    let off = off.clone();
     while let Some(state) = rx.recv().await.map(|count| {
         if count > 0 {
             State::InUse
