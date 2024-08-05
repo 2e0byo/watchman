@@ -17,18 +17,18 @@ enum State {
 }
 
 #[derive(Debug)]
-struct Event {
+struct Event<'a> {
     timestamp: Instant,
     state: State,
-    path: String,
+    path: &'a str,
 }
 
-impl Event {
-    fn new(state: State, path: &String) -> Event {
+impl<'a> Event<'a> {
+    fn new(state: State, path: &'a str) -> Event<'a> {
         Event {
             timestamp: Instant::now(),
             state,
-            path: path.to_string(),
+            path,
         }
     }
 }
@@ -96,7 +96,7 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     let mut path_map = HashMap::new();
-    let mut count_map: HashMap<String, u8> = HashMap::new();
+    let mut count_map: HashMap<&str, u8> = HashMap::new();
 
     let inotify = Inotify::init().expect("Error initialising inotify");
     for path in args.paths.iter() {
@@ -123,7 +123,7 @@ async fn main() {
         });
 
     for path in args.paths.iter() {
-        count_map.insert(path.to_string(), 0);
+        count_map.insert(path, 0);
     }
 
     tokio::pin!(stream);
@@ -134,12 +134,12 @@ async fn main() {
     let mut fut: Option<JoinHandle<()>> = None;
 
     while let Some(event) = stream.next().await {
-        let current = count_map.get(&event.path).unwrap();
+        let current = count_map.get(event.path).unwrap();
         let count = match event.state {
             State::InUse => current.to_owned().saturating_add(1),
             State::NotInUse => current.saturating_sub(1),
         };
-        count_map.insert(event.path.clone(), count);
+        count_map.insert(event.path, count);
         // println!("Event: {:?}, count: {:?}", event, count);
         match fut {
             None => (),
