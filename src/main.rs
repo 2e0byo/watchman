@@ -140,6 +140,7 @@ async fn main() {
             State::NotInUse => current.saturating_sub(1),
         };
         count_map.insert(event.path.clone(), count);
+        // println!("Event: {:?}, count: {:?}", event, count);
         match fut {
             None => (),
             Some(fut) => fut.abort(),
